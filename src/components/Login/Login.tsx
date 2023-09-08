@@ -1,14 +1,21 @@
-import { gapi } from "gapi-script";
-import { useEffect, useState } from "react";
+import './Login.css';
+import { useState } from "react";
 import GoogleLogin from "react-google-login";
 import axios from 'axios';
+import Dashboard from '../Dashboard/DashBoard';
 
 const clienId = "58204115475-l0adfrri5pf9nrih03c541pv9i563n3n.apps.googleusercontent.com";
 
 function Login() {
+    const [loggedIn, setLoggedIn] = useState(false);
+
 
     const onSuccess = (res:any) => {
         console.log('GOOGLE SUCCESS', res)
+        if (res.profileObj) {
+            setLoggedIn(true);
+        }
+        
 
         const fetchData = async () => {
             const accessToken = res.accessToken; 
@@ -34,7 +41,10 @@ function Login() {
                 }
               );
       
-              setData(response.data);
+              setData(response.data.rows);
+              if (res.profileObj) {
+                setLoggedIn(true);
+              }
             } catch (error) {
               console.error('Ошибка при запросе данных:', error);
             }
@@ -45,7 +55,6 @@ function Login() {
     const onFailure = (res:any) => {
         console.log('GOOGLE Failed', res)
     }
-
         const [data, setData] = useState(null);
 
     return (
@@ -57,14 +66,24 @@ function Login() {
                     onSuccess = {onSuccess}
                     onFailure = {onFailure}
                     cookiePolicy = {'single_host_origin'}
-                    isSignedIn = {true}
+                    isSignedIn
+                    render={renderProps => (
+                        <button 
+                            onClick={renderProps.onClick} 
+                            disabled={renderProps.disabled} 
+                            className={loggedIn ? 'success-button' : 'failure-button'}
+                    >{!loggedIn ? 'Connect Google Search Console':'Change Account'}</button>
+                    )}
                 >
                 </GoogleLogin>
+                  {loggedIn && (
+                  <Dashboard data={data} />
+                )}
             </div>
-            {/* <button onClick={execute()}>buttoon</button> */}
         </>
         
     )
 }
+
 
 export default Login;
